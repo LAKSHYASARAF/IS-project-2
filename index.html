@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>File Integrity Checker — Flask (SHA-256)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="hdr">
+      <h1>🔒 File Integrity Checker</h1>
+      <p class="sub">Compute SHA-256 • Save ONE baseline • Verify later (server stores baseline.json)</p>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-wrap">
+          {% for cat, msg in messages %}
+            <div class="flash {{ cat }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <section class="card">
+      <h2>① Save / Replace Baseline</h2>
+      <p class="hint">Upload the trusted/original file now. We’ll compute its SHA-256 and store it on the server.</p>
+      <form action="{{ url_for('save_baseline_route') }}" method="post" enctype="multipart/form-data" class="row">
+        <input type="file" name="baseline_file" required />
+        <button class="btn">Hash & Save</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>② Verify File</h2>
+      <p class="hint">Upload a file to check against the saved baseline.</p>
+      <form action="{{ url_for('verify_route') }}" method="post" enctype="multipart/form-data" class="row">
+        <input type="file" name="verify_file" required />
+        <button class="btn">Verify</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>③ Current Baseline</h2>
+      {% if baseline %}
+        <div class="baseline">
+          <p><strong>File:</strong> {{ baseline.name }}</p>
+          <p><strong>Size:</strong> {{ baseline.size }} bytes</p>
+          <p><strong>Saved on:</strong> {{ human_time(baseline.saved_at) }}</p>
+          <p><strong>SHA-256:</strong> <span class="mono">{{ baseline.hash }}</span></p>
+        </div>
+        <form action="{{ url_for('delete_baseline') }}" method="post" style="margin-top:10px">
+          <button class="btn danger">Delete Baseline</button>
+        </form>
+      {% else %}
+        <div class="baseline empty">
+          <p class="muted">No baseline saved yet.</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <footer class="foot">
+      <span class="muted">Hashing = unique fingerprint. SHA-256 output = 64 hex chars. 1-bit change ⇒ totally different hash.</span>
+    </footer>
+  </div>
+</body>
+</html>
